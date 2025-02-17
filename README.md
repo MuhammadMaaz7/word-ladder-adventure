@@ -1,0 +1,2 @@
+The Word Ladder Adventure Game revolves around transforming an iniƟal word into a target word by making
+incremental one-leƩer changes, where each intermediate word must be valid according to the dicƟonary.
