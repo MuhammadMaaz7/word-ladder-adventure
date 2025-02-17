@@ -29,8 +29,13 @@ def compare(input,similar):
 
 
 while True:
-    inputWord = input("Enter your word: ")
+    inputWord = input("Enter start word: ")
     if ValidWord(inputWord) == True:
+        break
+
+while True:
+    outputWord = input("Enter end word: ")
+    if inputWord != outputWord and len(inputWord) == len(outputWord) and ValidWord(outputWord) == True:
         break
 
 dictionary = []
