@@ -68,8 +68,10 @@ def main():
     data = file.read()
     words = data.split("\n")
     
+    #User Input
     startWord,endWord = userInput(words)
     
+    #Creating Graph
     graph = {}
     graph[startWord] = Node(startWord,None,[])
     addAllTransformations(startWord,words,graph)
