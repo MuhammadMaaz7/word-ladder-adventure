@@ -109,11 +109,18 @@ def main():
     
     #User Input
     # startWord,endWord = userInput(words)
-    startWord = "cat"
-    endWord = "bit"
+    startWord = "stone"
+    endWord = "money"
+    
+    dictionary = []
+    for word in words:
+        #print("For Word",word)
+        if len(word) == len(startWord):
+            dictionary.append(word)
+    print("Dictionary",dictionary)
     
     #Creating Graph
-    graph = buildGraph(startWord,endWord,words)
+    graph = buildGraph(startWord,endWord,dictionary)
     
     printGraph(graph)
     
