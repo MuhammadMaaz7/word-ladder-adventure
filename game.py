@@ -9,21 +9,6 @@ def ValidWord(input,words):
             return True
     
     return False
-        
-#To check if the new word is made by 1 letter transformation
-def compare(input,similar):
-    if len(input) != len(similar):
-        return False
-    
-    transformationCount = 0 
-    for i in range(len(input)):
-        if(input[i] != similar[i]):
-            transformationCount+=1
-    
-    if transformationCount==1:
-        return True
-    return False
-
 
 def userInput(words):
     startWord = input("Enter start word: ")
@@ -50,10 +35,23 @@ def userInput(words):
 
     return startWord,endWord
 
+#To check if the new word is made by 1 letter transformation
+def compare(input,similar):
+    if len(input) != len(similar):
+        return False
+    
+    transformationCount = 0 
+    for i in range(len(input)):
+        if(input[i] != similar[i]):
+            transformationCount+=1
+    
+    return transformationCount
+
 #To add all the possible transformations from a word
 def addAllTransformations(currentWord, words,graph):
+    #print("Adding Tranformations for ",currentWord)
     for word in words:
-        if compare(currentWord,word):
+        if compare(currentWord,word) == 1:
             
             #Adding word if it does not exist
             if word not in graph:
@@ -69,23 +67,39 @@ def addAllTransformations(currentWord, words,graph):
 def buildGraph(startWord,endWord, words):     
     graph ={startWord : Node(startWord,None)}
     queue = deque([startWord]) 
-    
+    explored = []
+
     while queue:
         currentWord = queue.popleft()
-        addAllTransformations(currentWord,words,graph)
+        #print("Popping ",currentWord)
+        if currentWord not in explored:
+            addAllTransformations(currentWord,words,graph)
         
-        for action in graph[currentWord].actions:
-            # if action not in graph:
-            queue.append(action)
-                
-            if action == endWord:
-                return graph
+            for action in graph[currentWord].actions:
+                # if action not in graph:
+
+                #if compare(endWord,action) < len(endWord): #money stone
+                    queue.append(action)
+                # if not queue:
+                #     print("Queue is empty at ",currentWord)
+                    
+                # if action == endWord:
+                #     print("End word found----------Exiting")
+                #     return graph
             
+            explored.append(currentWord)
+        
+
+        if endWord in explored:
+            print("Explored ",explored)
+            return graph
+
     return graph
         
 def printGraph(graph):
     for word, node in graph.items():
         print(f"Word: {word}, Parent: {node.parent}, Actions: {node.actions}")
+        print("---------------")
         
 def main():
      #Extracting All the words from txt file
@@ -96,7 +110,7 @@ def main():
     #User Input
     # startWord,endWord = userInput(words)
     startWord = "cat"
-    endWord = "big"
+    endWord = "bit"
     
     #Creating Graph
     graph = buildGraph(startWord,endWord,words)
