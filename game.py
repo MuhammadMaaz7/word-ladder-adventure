@@ -24,6 +24,9 @@ def compare(input,similar):
         return True
     return False
 
+def getHeuristic(word,goalWord):
+   heuristic_cost = sum(1 for a, b in zip(word, goalWord) if a != b)
+   return heuristic_cost
 
 def userInput(wordsList):
     startWord = input("Enter start word: ")
@@ -51,19 +54,23 @@ def userInput(wordsList):
     return startWord,endWord
 
 #To add all the possible transformations from a word
-def addAllTransformations(currentWord, wordsList,graph):
+def addAllTransformations(currentWord,endWord,wordsList,graph):
     for word in wordsList:
         if compare(currentWord,word):
             
+            pathCost = graph[currentWord].path_cost + 1
+            heuristicCost = getHeuristic(currentWord,endWord)
+            
             #Adding word if it does not exist
             if word not in graph:
-                graph[word] = Node(word,currentWord,[])
+                graph[word] = Node(word,currentWord,[],pathCost,heuristicCost)
             
             if word not in graph[currentWord].actions:
                 graph[currentWord].actions.append(word)
 
-def buildGraph(startWord,endWord, wordsList, depthLimit):     
-    graph = {startWord : Node(startWord,None,[])}
+def buildGraph(startWord,endWord, wordsList, depthLimit): 
+    heuristicCost = getHeuristic(startWord,endWord)
+    graph = {startWord : Node(startWord,None,[],0,heuristicCost)}
     queue = deque([(startWord,0)]) 
     explored = []
 
@@ -78,7 +85,7 @@ def buildGraph(startWord,endWord, wordsList, depthLimit):
             if currentWord not in graph:
                 graph[currentWord] = Node(currentWord,None)
                 
-            addAllTransformations(currentWord,wordsList,graph)
+            addAllTransformations(currentWord,endWord,wordsList,graph)
         
             for action in graph[currentWord].actions:
                 if action not in explored:
@@ -114,7 +121,7 @@ def playManualGame(startWord,endWord,graph):
     while currentNode.word != endWord:
         if currentNode.actions == []:
             addAllTransformations(currentNode.word,graph.keys(),graph)
-        print(f"Current Word: {currentNode.word}, Actions: {currentNode.actions}")
+        print(f"Current Word: {currentNode.word}, Actions: {currentNode.actions}, Path_Cost: {currentNode.path_cost}, Heuristic_Cost: {currentNode.heuristic_cost}")
         nextWord = input("Enter the next word: ")
         while nextWord not in currentNode.actions:
             nextWord = input("Invalid Word, Enter Again:")
@@ -138,7 +145,7 @@ def main():
     file.close()
     
     # update the depth limit here__________
-    depthLimit = 2
+    depthLimit = 5
     
     while True:
         startWord,endWord = userInput(wordsList)
