@@ -58,7 +58,7 @@ def addAllTransformations(currentWord,endWord,wordsList,graph):
     for word in wordsList:
         if compare(currentWord,word):
             
-            # pathCost = graph[currentWord].path_cost + 1
+            cost = 1
             heuristicCost = getHeuristic(currentWord,endWord)
             
             #Adding word if it does not exist
@@ -66,7 +66,7 @@ def addAllTransformations(currentWord,endWord,wordsList,graph):
                 graph[word] = Node(word,currentWord,[],heuristicCost)
             
             if word not in graph[currentWord].actions:
-                graph[currentWord].actions.append((word,1)) 
+                graph[currentWord].actions.append((word, cost)) 
 
 def buildGraph(startWord,endWord, wordsList, depthLimit): 
     heuristicCost = getHeuristic(startWord,endWord)
@@ -87,7 +87,7 @@ def buildGraph(startWord,endWord, wordsList, depthLimit):
                 
             addAllTransformations(currentWord,endWord,wordsList,graph)
         
-            for action in graph[currentWord].actions:
+            for action,cost  in graph[currentWord].actions:
                 if action not in explored:
                     queue.append((action, currentDepth + 1))
                 
@@ -98,21 +98,21 @@ def buildGraph(startWord,endWord, wordsList, depthLimit):
             
     return graph
 
-# def pathExists(startWord,endWord,graph):
-#     Explored = set()
-#     queue = deque([startWord])
-#     while queue:
-#         word = queue.popleft()
-#         if word == endWord:
-#             return True
-#         Explored.add(word)
+def pathExists(startWord,endWord,graph):
+    explored = set()
+    queue = deque([startWord])
+    while queue:
+        word = queue.popleft()
+        if word == endWord:
+            return True
+        explored.add(word)
         
-#         for action,_ in graph[word].actions:
-#             if action not in Explored:
-#                 Explored.add(action)
-#                 queue.append(action)
+        for action,cost in graph[word].actions:
+            if action not in explored:
+                explored.add(action)
+                queue.append(action)
                 
-#     return False
+    return False
         
 def playManualGame(startWord,endWord,graph):
     currentNode = graph[startWord]
@@ -122,9 +122,9 @@ def playManualGame(startWord,endWord,graph):
     while currentNode.word != endWord:
         if currentNode.actions == []:
             addAllTransformations(currentNode.word,endWord,graph.keys(),graph)
-        print(f"Current Word: {currentNode.word}, Actions: {currentNode.actions}, Path_Cost: {currentNode.path_cost}, Heuristic_Cost: {currentNode.heuristic_cost}")
+        print(f"Current Word: {currentNode.word}, Actions: {currentNode.actions}, Heuristic_Cost: {currentNode.heuristic_cost}")
         nextWord = input("Enter the next word: ")
-        while nextWord not in {word for word, _ in currentNode.actions}:
+        while nextWord not in [word for word, cost in currentNode.actions]:
             nextWord = input("Invalid Word, Enter Again:")
         
         path.append(nextWord)
@@ -159,9 +159,9 @@ def main():
             print("Depth limit reached and still end word not found.")
             continue
 
-        # if pathExists(startWord,endWord,graph) == False :
-        #     print("No path exists between these words")
-        #     continue
+        if pathExists(startWord,endWord,graph) == False :
+            print("No path exists between these words")
+            continue
         
         break
     
