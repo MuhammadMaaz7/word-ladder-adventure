@@ -3,8 +3,8 @@ from collections import deque
 
 
 #To Check if the word exists in the dictionary
-def ValidWord(input,words):
-    for word in words:
+def ValidWord(input,wordsList):
+    for word in wordsList:
         if(input == word):
             return True
     
@@ -25,10 +25,10 @@ def compare(input,similar):
     return False
 
 
-def userInput(words):
+def userInput(wordsList):
     startWord = input("Enter start word: ")
     while True:
-        if ValidWord(startWord,words) != True:
+        if ValidWord(startWord,wordsList) != True:
             print("Word does not exist in Dictionary")
             startWord = input("Enter a valid start word: ")
         else:
@@ -42,7 +42,7 @@ def userInput(words):
         elif len(startWord) != len(endWord):
             print("Start and End word must be of same length.")
             endWord = input("Enter a valid end word: ")
-        elif ValidWord(endWord,words) == False:
+        elif ValidWord(endWord,wordsList) == False:
             print("Word does not exist in Dictionary")
             endWord = input("Enter a valid end word: ")
         else:
@@ -51,8 +51,8 @@ def userInput(words):
     return startWord,endWord
 
 #To add all the possible transformations from a word
-def addAllTransformations(currentWord, words,graph):
-    for word in words:
+def addAllTransformations(currentWord, wordsList,graph):
+    for word in wordsList:
         if compare(currentWord,word):
             
             #Adding word if it does not exist
@@ -61,22 +61,29 @@ def addAllTransformations(currentWord, words,graph):
             
             if word not in graph[currentWord].actions:
                 graph[currentWord].actions.append(word)
-            
-def buildGraph(startWord,endWord, words):     
-    graph ={startWord : Node(startWord,None)}
-    queue = deque([startWord]) 
+
+def buildGraph(startWord,endWord, wordsList, depthLimit):     
+    graph = {startWord : Node(startWord,None,[])}
+    queue = deque([(startWord,0)]) 
     explored = []
 
     
     while queue:
-        currentWord = queue.popleft()
+        currentWord, currentDepth = queue.popleft()
+        
+        if currentDepth > depthLimit:
+            return None
+        
         if currentWord not in explored:
-            addAllTransformations(currentWord,words,graph)
+            if currentWord not in graph:
+                graph[currentWord] = Node(currentWord,None)
+                
+            addAllTransformations(currentWord,wordsList,graph)
         
             for action in graph[currentWord].actions:
-                queue.append(action)
+                if action not in explored:
+                    queue.append((action, currentDepth + 1))
                 
-            
             explored.append(currentWord)
             
         if endWord in explored:
@@ -126,44 +133,30 @@ def printGraph(graph):
         print(f"Word: {word}, Parent: {node.parent}, Actions: {node.actions}")
         
 def main():
-     #Extracting All the words from txt file
     file = open("words_alpha.txt", "r" )
-    data = file.read()
-    words = data.split("\n")
-    dictionary = []
+    wordsList = file.read().split("\n")
+    file.close()
     
-    #User Input
+    # update the depth limit here__________
+    depthLimit = 2
     
-    
-    startWord,endWord = userInput(words)
-    
-    for word in words:
-        if len(word) == len(startWord):
-            dictionary.append(word)
-    
-    #Creating Graph
-    graph = buildGraph(startWord,endWord,dictionary)
-    
-    # printGraph(graph)
-    
-    while pathExists(startWord,endWord,graph) == False:
-        print("No path exists between these words")
-        startWord,endWord = userInput(words)
+    while True:
+        startWord,endWord = userInput(wordsList)
         
-        for word in words:
-            if len(word) == len(startWord):
-                dictionary.append(word)
+        dictionary = [word for word in wordsList if len(word) == len(startWord)]
+
+        graph = buildGraph(startWord,endWord,dictionary,depthLimit)
     
+        if graph is None:
+            print("Depth limit reached and still end word not found.")
+            continue
+
+        if pathExists(startWord,endWord,graph) == False :
+            print("No path exists between these words")
+            continue
         
-        graph = buildGraph(startWord,endWord,dictionary)
+        break
+    
     playManualGame(startWord,endWord,graph)
   
 main()
-
-
-# 1. Graph from start word to end word
-# 2. consists of all paths from start to end
-# 3. Words(Nodes) should not be repeated (If a word(node) exists in graph it shouldnt be added again)
-# 4. Each node should have parent and actions
-# 5. Parent of a node cannot be updated
-# 6. Both Nodes should have action of eachother, meaning its possible to go from a cat -> bat, and also bat -> cat
