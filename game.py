@@ -1,6 +1,7 @@
 from node import Node
 from collections import deque
-
+from queue import PriorityQueue
+import math
 
 #To Check if the word exists in the dictionary
 def ValidWord(input,wordsList):
@@ -25,8 +26,15 @@ def compare(input,similar):
     return False
 
 def getHeuristic(word,goalWord):
-   heuristic_cost = sum(1 for a, b in zip(word, goalWord) if a != b)
-   return heuristic_cost
+    # transformationCount = 0 
+    
+    # for i in range(len(word)):
+    #     if(word[i] == goalWord[i]):
+    #         transformationCount+=1
+    
+    transformationCount = len(word) - sum(1 for a, b in zip(word, goalWord) if a == b)
+            
+    return transformationCount
 
 def userInput(wordsList):
     startWord = input("Enter start word: ")
@@ -53,20 +61,23 @@ def userInput(wordsList):
 
     return startWord,endWord
 
-#To add all the possible transformations from a word
+# To add all the possible transformations from a word
 def addAllTransformations(currentWord,endWord,wordsList,graph):
     for word in wordsList:
         if compare(currentWord,word):
             
             cost = 1
-            heuristicCost = getHeuristic(currentWord,endWord)
-            
+            heuristicCost = getHeuristic(word,endWord)
+            # print("Current Word: ", word, "Heuristic: ",heuristicCost)
             #Adding word if it does not exist
             if word not in graph:
                 graph[word] = Node(word,currentWord,[],heuristicCost)
             
             if word not in graph[currentWord].actions:
                 graph[currentWord].actions.append((word, cost)) 
+            # or
+            # if not any(action[0] == word for action in graph[currentWord].actions):
+            #     graph[currentWord].actions.append((word, cost))
 
 def buildGraph(startWord,endWord, wordsList, depthLimit): 
     heuristicCost = getHeuristic(startWord,endWord)
@@ -74,7 +85,6 @@ def buildGraph(startWord,endWord, wordsList, depthLimit):
     queue = deque([(startWord,0)]) 
     explored = []
 
-    
     while queue:
         currentWord, currentDepth = queue.popleft()
         
@@ -113,28 +123,146 @@ def pathExists(startWord,endWord,graph):
                 queue.append(action)
                 
     return False
+
+def actionSequence(graph, goalState,initialState):
+    solution = [goalState]
+    currentParent = graph[goalState].parent
+    while currentParent is not initialState:
+        # print("ParentNode", currentParent)
+        solution.append(currentParent)
+        currentParent = graph[currentParent].parent
+    solution.reverse()
+    return solution
+
+def findMin(frontier):
+    minPathCost = math.inf
+    node = ''
+    for i in frontier:
+        if minPathCost > frontier[i][1]:
+            minPathCost = frontier[i][1]
+            node = i
+    # print("Returning ",node," from FindMin")
+    return node
+
+def UCS(startWord,endWord,graph):
+
+    if startWord in graph and endWord in graph:
+        initialState = startWord
+        goalState = endWord
+
+        frontier = {}
+        explored = []
+
+        frontier[initialState] = (None,0)
+
+        while frontier:
+            currentNode = findMin(frontier)
+            del frontier[currentNode]
+
+            if graph[currentNode].word == goalState:
+                return actionSequence(graph,goalState,initialState)
+
+            explored.append(currentNode)
+            for action in graph[currentNode].actions:
+                currentCost = action[1] + graph[currentNode].path_cost
+
+                if action[0] not in frontier and action[0] not in explored:
+                    graph[action[0]].parent = currentNode
+                    graph[action[0]].path_cost = currentCost
+                    frontier[action[0]]=(graph[action[0]].parent, graph[action[0]].path_cost)
+                elif action[0] in frontier:
+                    if frontier[action[0]][1]<currentCost:
+                        graph[action[0]].parent = frontier[action[0]][0]
+                        graph[action[0]].path_cost = frontier[action[0]][1]
+                    else:
+                        frontier[action[0]] = (currentNode, currentCost)
+                        graph[action[0]].parent=currentNode
+                        graph[action[0]].path_cost = currentCost
         
-def playManualGame(startWord,endWord,graph):
+def playManualGame(startWord, endWord, graph):
+    if startWord not in graph:
+        print(f"Error: Start word '{startWord}' not found in graph!")
+        return False
+    
     currentNode = graph[startWord]
     moves = 0
     path = []
-    
+
     while currentNode.word != endWord:
-        if currentNode.actions == []:
-            addAllTransformations(currentNode.word,endWord,graph.keys(),graph)
-        print(f"Current Word: {currentNode.word}, Actions: {currentNode.actions}, Heuristic_Cost: {currentNode.heuristic_cost}")
-        nextWord = input("Enter the next word: ")
-        while nextWord not in [word for word, cost in currentNode.actions]:
-            nextWord = input("Invalid Word, Enter Again:")
-        
+        # Add transformations if no actions exist
+        if not currentNode.actions:
+            addAllTransformations(currentNode.word, endWord, graph.keys(), graph)
+            currentNode = graph[currentNode.word]  # Update node after adding actions
+
+        # print(f"Current Word: {currentNode.word}, Actions: {currentNode.actions}, Heuristic_Cost: {currentNode.heuristic_cost}")
+
+        nextWord = input("Enter the next word or type '1' to get a hint: ").strip()
+
+        while nextWord.lower() == '1':
+            print("Choose an algorithm to get hint")
+            print("1. UCS")
+            print("2. GBFS")
+            algo = input("Enter Algorithm No.: ").strip()
+
+            hintPath = []
+            if algo == "1":
+                hintPath = UCS(currentNode.word, endWord, graph)
+            elif algo == "2":
+                hintPath = GBFS(currentNode.word, endWord, graph)
+            else:
+                print("Invalid algorithm choice! Try again.")
+                continue
+
+            if hintPath:
+                print("Hint: ", hintPath[0])
+            else:
+                print("No valid path found!")
+
+            nextWord = input("Enter the next word or type '1' to get a hint: ").strip()
+
+            if nextWord != '1':
+                valid_words = {word for word, _ in currentNode.actions}
+                while nextWord not in valid_words:
+                    nextWord = input("Invalid Word, Enter another word or type 'hint' to get a hint: ").strip()
+
+        # Move to the next word
         path.append(nextWord)
-        moves+=1
+        moves += 1
         currentNode = graph[nextWord]
+
+    print("Congratulations, You won! 🎉 Score: ", moves)
+    print("Path: ", path)
+    return True
+
+
+def GBFS(startWord,endWord,graph):
+
+    currentNode = graph[startWord]
+    queue = PriorityQueue()
+    explored = set()
+    queue.put((currentNode.heuristic_cost, currentNode.word, []))
+    
+    
+    while not queue.empty():
+        heuristic, currentWord, path = queue.get()
         
-        if currentNode.word == endWord:
-            print("Congratulations, You won, Score: ",moves)
-            print("Path: ",path)
-            return True
+        if currentWord == endWord:
+            print("found path: ",path)
+            return path
+        
+        if currentWord in explored:
+            continue
+        
+        explored.add(currentWord)
+        
+        # print(f"Current Word: {currentWord}, Actions: {graph[currentWord].actions}, Heuristic_Cost: {graph[currentWord].heuristic_cost}")
+        
+        # if currentWord in graph:
+        for action, _ in graph[currentWord].actions:
+            if action not in explored:
+                queue.put((graph[action].heuristic_cost, action, path + [action]))
+                    
+    return None
 
 def printGraph(graph):
     for word, node in graph.items():
@@ -150,6 +278,8 @@ def main():
     
     while True:
         startWord,endWord = userInput(wordsList)
+        # startWord = "cat"
+        # endWord = "big"
         
         dictionary = [word for word in wordsList if len(word) == len(startWord)]
 
@@ -166,5 +296,6 @@ def main():
         break
     
     playManualGame(startWord,endWord,graph)
+    # GBFS(startWord,endWord,graph)
   
 main()
