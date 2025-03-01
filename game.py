@@ -273,6 +273,8 @@ def chooseMode():
     print("2. Intermediate")
     print("3. Advanced")
     
+    movesLimit = 0
+    
     mode = input("Enter 1,2 or 3: ")
     while True:
         if mode == "1" or mode == "2" or mode == "3":
@@ -282,12 +284,18 @@ def chooseMode():
         
     if mode == "1":
         print("Beginner Mode Selected - Easy Peasy")
+        print("You will have 5 moves to reach the end word")
+        movesLimit = 5
     elif mode == "2":
         print("Intermediate Mode Selected - Let's see how good you are")
+        print("You will have 7 moves to reach the end word")
+        movesLimit = 7
     elif mode == "3":
         print("Advanced Mode Selected - You are a pro")
+        print("You will have 10 moves to reach the end word")
+        movesLimit = 10
             
-    return mode
+    return mode,movesLimit
 
 def beginner():
     words = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),("line","cake"),("head","tail"),("star","moon"),("book","read"),("pen","ink"),("sail","ruin"),("wolf","gown"),("side","walk")]
@@ -329,18 +337,25 @@ def ownWords(wordsList):
 
     return startWord,endWord
 
-def playGame(startWord, endWord, graph):
+def playGame(startWord, endWord, graph, moveLimit):
     
     currentNode = graph[startWord]
     moves = 0
     path = []
 
     while currentNode.word != endWord:
-        # Add transformations if no actions exist
+        if moves == moveLimit:
+            print("You have reached the move limit. Game Over!😔")
+            print("Path:", path)
+            return False
+        
         if not currentNode.actions:
             addAllTransformations(currentNode.word, endWord, graph.keys(), graph)
             currentNode = graph[currentNode.word]
 
+        if moves > moveLimit/2:
+            print("Keep count of moves, you have ",moveLimit-moves," moves left ☹️⌛")
+        
         nextWord = input("Enter the next word or type '1' to get a hint: ").strip()
         
         valid_words = {word for word, _ in currentNode.actions}
@@ -387,31 +402,50 @@ def playGame(startWord, endWord, graph):
 
     print("Congratulations, You won! 🎉 Score: ", moves)
     print("Path: ", path)
-    return True
+    return moves
+
+def optimalMoves(startWord, endWord,graph):
+    optimalPath = Astar(startWord,endWord,graph)
+    return len(optimalPath)
+
+def calculateScore(movesTaken,optimalMoves):
+    maxScore = 100
+    penaltyPerExtraMove = 10
+    extraMoves = max(0,movesTaken - optimalMoves)
+    score = max(0,maxScore - (extraMoves * penaltyPerExtraMove))
+    
+    return score
 
 def startGame():
     file = open("words_alpha.txt", "r" )
     wordsList = file.read().split("\n")
     file.close()
     depthLimit = 5
+    moveLimit = 0
     startWord = ""
     endWord = ""
+    score = 0
     
     instructions()
     
-    type = gameType()
-    if type == "1":
-        startWord,endWord = ownWords(wordsList)
-    elif type == "2":
-        mode = chooseMode()
-        if mode == "1":
-            startWord,endWord = beginner()
-        elif mode == "2":
-            startWord,endWord = intermediate()
-        elif mode == "3":
-            startWord,endWord = advanced()
-    
     while True:
+        type = gameType()
+        if type == "1":
+            startWord,endWord = ownWords(wordsList)
+            moveLimit = 10
+            print()
+            print("You chose your own path. 🤷")
+            print("so you have 10 moves to reach the end word 🏃")
+            print()
+        elif type == "2":
+            mode, moveLimit = chooseMode()
+            if mode == "1":
+                startWord,endWord = beginner()
+            elif mode == "2":
+                startWord,endWord = intermediate()
+            elif mode == "3":
+                startWord,endWord = advanced()
+    
         dictionary = [word for word in wordsList if len(word) == len(startWord)]
 
         print("Preparing Game for you...")
@@ -427,11 +461,27 @@ def startGame():
                 print("No path exists between these words")
                 continue
         
-        break
     
-    print("Game Ready! Let's Start")
-    print("The start word is: ", startWord)
-    print("and the goal is to reach: ", endWord)
-    playGame(startWord,endWord,graph)
-  
+        print("Game Ready! Let's Start")
+        print("The start word is: ", startWord)
+        print("and the goal is to reach: ", endWord)
+        
+        optimalmoves = optimalMoves(startWord,endWord,graph)
+        print("optimal moves", optimalmoves)
+        
+        moves = playGame(startWord,endWord,graph,moveLimit)
+        if moves != False:
+            score = calculateScore(moves,optimalmoves)
+        
+        print("Your Score is: ", score)
+
+        
+        print()
+        playAgain = input("Do you want to play again?(1/0): ")
+        if playAgain == "1":
+            startGame()
+        else:
+            print("Thanks for playing!👋🙋‍♂️")
+            break
+    
 startGame()
