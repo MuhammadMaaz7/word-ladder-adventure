@@ -325,9 +325,21 @@ def intermediate():
     wordTuple = random.choice(words)
     return wordTuple[0],wordTuple[1]
 
+def removeBannedWords(dictionary,startWord,endWord):
+    filteredDict = [word for word in dictionary if word not in [startWord,endWord]]
+    bannedWords = random.sample(filteredDict, k=len(filteredDict) // 6)
+    newDict = [word for word in filteredDict if word not in bannedWords] + [startWord,endWord]
+    # print("\n\t\t\t\tBanned Words Removed from Dictionary")
+    # print("\n\t\t\t\tBanned Words: ", bannedWords)
+    return newDict,bannedWords
+    
 def advanced():
-    print("advanced")
-    #todo
+    words = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),("line","cake"),("head","tail"),("star","moon"),("book","read"),("pen","ink"),("sail","ruin"),("wolf","gown"),("side","walk"),
+            ("stone","money"),("ladder","better"),("cross","river"),("wheat","bread"),("apple","mango"),("blue","pink"),("work","team")]
+    
+    wordTuple = random.choice(words)
+    return wordTuple[0],wordTuple[1]
+    
  
  #For user custom words
 def ownWords(wordsList):
@@ -359,13 +371,13 @@ def ownWords(wordsList):
     print("\n\t\t" + "\033[34m=\033[0m" * 92 + "\n")
     return startWord,endWord
 
-def playGame(startWord, endWord, graph, moveLimit):
+def playGame(startWord, endWord, graph, moveLimit,bannedWords):
     
     currentNode = graph[startWord]
     moves = 0
     path = []
     optimalmoves = optimalMoves(startWord,endWord,graph)
-    
+    hintsUsed = 0    
 
     while currentNode.word != endWord:
         # Add transformations if no actions exist
@@ -389,6 +401,9 @@ def playGame(startWord, endWord, graph, moveLimit):
                 break
             elif nextWord in valid_words:
                 break
+            elif nextWord in bannedWords:
+                print("\n\t\t\t\t\t\t\033[31mThis word is banned! Try another word.\033[0m")
+                nextWord = input("\033[1;36m\n\t\t\t\t\tEnter the next word: \033[0m").strip()
             else:
                 nextWord = input("\n\t\t\t\t\t\033[31mInvalid Word, Enter another word or type '1' to get a hint: \033[0m").strip()
 
@@ -412,6 +427,7 @@ def playGame(startWord, endWord, graph, moveLimit):
 
             if hintPath:
                 print("\t\t\t\t\t\033[32mHint: \033[0m", hintPath[0])
+                hintsUsed += 1
             else:
                 print("\t\t\t\t\033[31mNo valid path found!\033[0m")
             
@@ -419,13 +435,16 @@ def playGame(startWord, endWord, graph, moveLimit):
             valid_words = {word for word, _ in currentNode.actions}
             while nextWord not in valid_words:
                 nextWord = input("\n\t\t\t\t\t\033[31mInvalid Word, Enter another word: \033[0m").strip()
+                if nextWord in bannedWords:
+                    print("\n\t\t\t\t\033[31mThis word is banned! Try another word.\033[0m")
+                    nextWord = input("\033[1;36m\n\t\t\t\t\tEnter the next word: \033[0m").strip()
             
         # Move to the next word
         path.append(nextWord)
         moves += 1
         currentNode = graph[nextWord]
         
-    score = calculateScore(moves,optimalmoves)
+    score = calculateScore(moves,optimalmoves,hintsUsed)
 
     print("\n\t\t" + "\033[34m=\033[0m" * 92 + "\n")  
     print("\n\t\t\t\t\tCONGRAATUULATIONSS, YOUU WONNN! 🎉 SCORE: ", score)
@@ -438,11 +457,12 @@ def optimalMoves(startWord, endWord,graph):
     optimalPath = Astar(startWord,endWord,graph)
     return len(optimalPath)
 
-def calculateScore(movesTaken,optimalMoves):
+def calculateScore(movesTaken,optimalMoves,hintsUsed):
     maxScore = 100
     penaltyPerExtraMove = 10
+    penaltyPerHint = 5
     extraMoves = max(0,movesTaken - optimalMoves)
-    score = max(0,maxScore - (extraMoves * penaltyPerExtraMove))
+    score = max(0,maxScore - (extraMoves * penaltyPerExtraMove) - (hintsUsed * penaltyPerHint))
     
     return score
 
@@ -455,7 +475,9 @@ def startGame():
     startWord = ""
     endWord = ""
     moveLimit = 0
-    score = 0
+    mode = ""
+    dictionary = []
+    bannedWords = [] #For telling user that your input is correct but the word is banned
     
     instructions()
     
@@ -475,10 +497,15 @@ def startGame():
                 startWord,endWord = intermediate()
             elif mode == "3":
                 startWord,endWord = advanced()
-        
+                
+                
         
         dictionary = [word for word in wordsList if len(word) == len(startWord)]
 
+        if mode == "3":
+            
+            dictionary,bannedWords = removeBannedWords(dictionary,startWord,endWord)
+            
         print("\n\t\t\t\t\033[5mPreparing Game for you...\033[0m")
         graph = buildGraph(startWord,endWord,dictionary,depthLimit)
     
@@ -508,13 +535,14 @@ def startGame():
 
         print("\n\t\t" + "\033[34m=\033[0m" * 92 + "\n")
 
-        # optimalmoves = optimalMoves(startWord,endWord,graph)
-        # print("\n\t\t\t\toptimal moves", optimalmoves)
-        playGame(startWord,endWord,graph,moveLimit)
-        # if moves != False:
-        #     score = calculateScore(moves,optimalmoves)
+        if mode == "3":
+            # print("in mode 3")
+            print("\n\t\t\t\t\t\033[1;31m Game twist, some words are banned to use😏",)
+            playGame(startWord,endWord,graph,moveLimit,bannedWords)
+        else:
+            playGame(startWord,endWord,graph,moveLimit,[])
         
-        # print("\n\t\t\t\tYour Score is: ", score)
+        
         playAgain = input("\n\t\t\t\tDo you want to play again?(1/0): ")
         if playAgain == "1":
             startGame()
