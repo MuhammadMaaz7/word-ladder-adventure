@@ -4,6 +4,8 @@ from queue import PriorityQueue
 import math
 import random
 import time
+import networkx as nx
+import matplotlib.pyplot as plt
 
 #To Check if the word exists in the dictionary
 def ValidWord(input,wordsList):
@@ -204,8 +206,6 @@ def getHeuristic(word,goalWord):
     for i in range(len(word)):
         if(word[i] != goalWord[i]):
             transformationCount+=1
-    
-    # transformationCount = len(word) - sum(1 for a, b in zip(word, goalWord) if a == b)
             
     return transformationCount
 
@@ -229,17 +229,36 @@ def GBFS(startWord,endWord,graph):
         
         explored.add(currentWord)
         
-        # print(f"Current Word: {currentWord}, Actions: {graph[currentWord].actions}, Heuristic_Cost: {graph[currentWord].heuristic_cost}")
-        
         for action, _ in graph[currentWord].actions:
             if action not in explored:
                 queue.put((graph[action].heuristic_cost, action, path + [action]))
                     
     return None
 
-def printGraph(graph):
-    for word, node in graph.items():
-        print(f"Word: {word}, Parent: {node.parent}, Actions: {node.actions}")
+import networkx as nx
+import matplotlib.pyplot as plt
+
+def visualize_path(startWord,endWord,graph):
+    G = nx.Graph()
+    shortestPath = Astar(startWord,endWord,graph)
+    shortestPath.insert(0,startWord)
+    
+    for i in range(len(shortestPath) - 1):
+        G.add_edge(shortestPath[i], shortestPath[i+1])
+
+    pos = nx.spring_layout(G, seed=40) 
+
+    plt.figure(figsize=(10, 6))
+
+    node_colors = ['green' if node == shortestPath[0] else 'green' if node == shortestPath[-1] else 'lightblue' for node in G.nodes()]
+    nx.draw_networkx_nodes(G, pos, node_size=600, node_color=node_colors, edgecolors="grey")
+
+    nx.draw_networkx_edges(G, pos, width=2, edge_color='blue')
+
+    nx.draw_networkx_labels(G, pos, font_size=10, font_color="black", font_weight="bold")
+
+    plt.title("Visualizing the Shortest Path Found by UCS")
+    plt.show()
 
 def instructions():
     print("\033[1;34m\n\t\t======================== WELCOME TO THE WORD LADDER ADVENTURE GAME ========================\033[0m")
@@ -259,8 +278,6 @@ def instructions():
 
     input("\n\t\t\t\t\033[1;36mPress Enter to prove you're ready...\033[0m")  
     print("\n\t\t" + "\033[34m=\033[0m" * 92 + "\n")  
-
-
 
 # Game Type Manual or Auto
 def gameType():
@@ -372,7 +389,6 @@ def ownWords(wordsList):
     return startWord,endWord
 
 def playGame(startWord, endWord, graph, moveLimit,bannedWords):
-    
     currentNode = graph[startWord]
     moves = 0
     path = []
@@ -508,7 +524,7 @@ def startGame():
             
         print("\n\t\t\t\t\033[5mPreparing Game for you...\033[0m")
         graph = buildGraph(startWord,endWord,dictionary,depthLimit)
-    
+        
         #Depth and path existence only to check if user enter words
         if gameType == "1":
             if graph is None:
@@ -542,6 +558,8 @@ def startGame():
         else:
             playGame(startWord,endWord,graph,moveLimit,[])
         
+        print("\t\t\t\t\t\033[1;34mBe Patient, your graph visualization takes time🥲\033[0m")
+        visualize_path(startWord,endWord,graph)
         
         playAgain = input("\n\t\t\t\tDo you want to play again?(1/0): ")
         if playAgain == "1":
