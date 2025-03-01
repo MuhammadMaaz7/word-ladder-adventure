@@ -248,7 +248,6 @@ def instructions():
 
 # Game Type Manual or Auto
 def gameType():
-    # print("What do you think?")
     print()
     print("1. Wanna enter your own words🥱")
     print("2. Or Let us challenge you😼")
@@ -293,18 +292,18 @@ def chooseMode():
 def beginner():
     words = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),("line","cake"),("head","tail"),("star","moon"),("book","read"),("pen","ink"),("sail","ruin"),("wolf","gown"),("side","walk")]
     wordTuple = random.choice(words)
-    # print (wordTuple)
     return wordTuple[0],wordTuple[1]
 
 def intermediate():
     words = [("stone","money"),("ladder","better"),("cross","river"),("wheat","bread"),("apple","mango"),("blue","pink"),("work","team")]
     wordTuple = random.choice(words)
-    # print (wordTuple)
     return wordTuple[0],wordTuple[1]
 
 def advanced():
     print("advanced")
+    #todo
  
+ #For user custom words
 def ownWords(wordsList):
     startWord = input("Enter start word: ")
     while True:
@@ -331,9 +330,6 @@ def ownWords(wordsList):
     return startWord,endWord
 
 def playGame(startWord, endWord, graph):
-    # if startWord not in graph:
-    #     print(f"Error: Start word '{startWord}' not found in graph!")
-    #     return False
     
     currentNode = graph[startWord]
     moves = 0
@@ -422,14 +418,14 @@ def startGame():
         graph = buildGraph(startWord,endWord,dictionary,depthLimit)
     
         #Depth and path existence only to check if user enter words
-        # if gameType == "1":
-        if graph is None:
-            print("Depth limit reached and still end word not found.")
-            continue
+        if gameType == "1":
+            if graph is None:
+                print("Depth limit reached and still end word not found.")
+                continue
 
-        if pathExists(startWord,endWord,graph) == False :
-            print("No path exists between these words")
-            continue
+            if pathExists(startWord,endWord,graph) == False :
+                print("No path exists between these words")
+                continue
         
         break
     
