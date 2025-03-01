@@ -333,12 +333,14 @@ def chooseMode():
     return mode, movesLimit
 
 def beginner():
-    words = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),("line","cake"),("head","tail"),("star","moon"),("book","read"),("pen","ink"),("sail","ruin"),("wolf","gown"),("side","walk")]
+    words = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),("line","cake"),("head","tail"),("star","moon"),("book","read"),("pen","ink"),("sail","ruin"),("wolf","gown"),("side","walk"),
+            ("cash","bank"),("ball","pluck"),("leek","soup"),("play","game"),("ear","eye"),("arm","leg"),("tie","dye"),("wine","beer"),("farm","food"),("salt","milk"),("hit","cog")]
     wordTuple = random.choice(words)
     return wordTuple[0],wordTuple[1]
 
 def intermediate():
-    words = [("stone","money"),("ladder","better"),("cross","river"),("wheat","bread"),("apple","mango"),("blue","pink"),("work","team")]
+    words = [("stone","money"),("ladder","better"),("cross","river"),("wheat","bread"),("apple","mango"),("blue","pink"),("work","team"),
+            ("drink","eight"),("always","around"),("table","crown"),("truck","loads"),("party","smart"),("clock","clown"),("army","name")]
     wordTuple = random.choice(words)
     return wordTuple[0],wordTuple[1]
 
