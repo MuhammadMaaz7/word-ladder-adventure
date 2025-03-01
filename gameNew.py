@@ -364,6 +364,8 @@ def playGame(startWord, endWord, graph, moveLimit):
     currentNode = graph[startWord]
     moves = 0
     path = []
+    optimalmoves = optimalMoves(startWord,endWord,graph)
+    
 
     while currentNode.word != endWord:
         # Add transformations if no actions exist
@@ -422,9 +424,11 @@ def playGame(startWord, endWord, graph, moveLimit):
         path.append(nextWord)
         moves += 1
         currentNode = graph[nextWord]
+        
+    score = calculateScore(moves,optimalmoves)
 
     print("\n\t\t" + "\033[34m=\033[0m" * 92 + "\n")  
-    print("\n\t\t\t\t\tCONGRAATUULATIONSS, YOUU WONNN! 🎉 SCORE: ", moves)
+    print("\n\t\t\t\t\tCONGRAATUULATIONSS, YOUU WONNN! 🎉 SCORE: ", score)
     print("\n\t\t\t\t\tPath: ", path)
     print("\n\t\t" + "\033[34m=\033[0m" * 92 + "\n")  
     
@@ -504,13 +508,13 @@ def startGame():
 
         print("\n\t\t" + "\033[34m=\033[0m" * 92 + "\n")
 
-        optimalmoves = optimalMoves(startWord,endWord,graph)
-        print("\n\t\t\t\toptimal moves", optimalmoves)
-        moves = playGame(startWord,endWord,graph,moveLimit)
-        if moves != False:
-            score = calculateScore(moves,optimalmoves)
+        # optimalmoves = optimalMoves(startWord,endWord,graph)
+        # print("\n\t\t\t\toptimal moves", optimalmoves)
+        playGame(startWord,endWord,graph,moveLimit)
+        # if moves != False:
+        #     score = calculateScore(moves,optimalmoves)
         
-        print("\n\t\t\t\tYour Score is: ", score)
+        # print("\n\t\t\t\tYour Score is: ", score)
         playAgain = input("\n\t\t\t\tDo you want to play again?(1/0): ")
         if playAgain == "1":
             startGame()
