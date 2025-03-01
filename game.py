@@ -339,6 +339,7 @@ def ownWords(wordsList):
 
 def playGame(startWord, endWord, graph, moveLimit):
     
+    
     currentNode = graph[startWord]
     moves = 0
     path = []
