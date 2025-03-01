@@ -2,6 +2,7 @@ from node import Node
 from collections import deque
 from queue import PriorityQueue
 import math
+import random
 
 #To Check if the word exists in the dictionary
 def ValidWord(input,wordsList):
@@ -24,31 +25,6 @@ def compare(input,similar):
     if transformationCount==1:
         return True
     return False
-
-def userInput(wordsList):
-    startWord = input("Enter start word: ")
-    while True:
-        if ValidWord(startWord,wordsList) != True:
-            print("Word does not exist in Dictionary")
-            startWord = input("Enter a valid start word: ")
-        else:
-            break
-
-    endWord = input("Enter end word: ")
-    while True:
-        if startWord == endWord:
-            print("Start and End word cannot be same.")
-            endWord = input("Enter a valid end word: ")
-        elif len(startWord) != len(endWord):
-            print("Start and End word must be of same length.")
-            endWord = input("Enter a valid end word: ")
-        elif ValidWord(endWord,wordsList) == False:
-            print("Word does not exist in Dictionary")
-            endWord = input("Enter a valid end word: ")
-        else:
-            break
-
-    return startWord,endWord
 
 # To add all the possible transformations from a word
 def addAllTransformations(currentWord,endWord,wordsList,graph):
@@ -244,7 +220,7 @@ def GBFS(startWord,endWord,graph):
         heuristic, currentWord, path = queue.get()
         
         if currentWord == endWord:
-            print(path)
+            # print(path)
             return path
         
         if currentWord in explored:
@@ -266,11 +242,98 @@ def printGraph(graph):
 
 def instructions():
     print("Welcome to the World Ladder Adventure🦕")
+    print("_____________________________________________")
    
+
+
+# Game Type Manual or Auto
+def gameType():
+    # print("What do you think?")
+    print()
+    print("1. Wanna enter your own words🥱")
+    print("2. Or Let us challenge you😼")
+    print()
+    choice = input("What do you think? Enter 1 or 2: ")
+    
+    while True:
+        if choice == "1" or choice == "2":
+            break
+        else:
+            choice = input("Invalid Choice! Enter again 😒: ")
+
+    if choice == "1":
+        print("You chose to enter your own words")
+    else:
+        print("Let us find the perfect words for you")
+    return choice
+
+# Choose Game Mode - Beginner, Intermediate, Advanced
+def chooseMode():
+    print("Choose a game mode")
+    print("1. Beginner")
+    print("2. Intermediate")
+    print("3. Advanced")
+    
+    mode = input("Enter 1,2 or 3: ")
+    while True:
+        if mode == "1" or mode == "2" or mode == "3":
+            break
+        else:
+            mode = input("Invalid Choice! Enter again 😒: ")
+        
+    if mode == "1":
+        print("Beginner Mode Selected - Easy Peasy")
+    elif mode == "2":
+        print("Intermediate Mode Selected - Let's see how good you are")
+    elif mode == "3":
+        print("Advanced Mode Selected - You are a pro")
+            
+    return mode
+
+def beginner():
+    words = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),("line","cake"),("head","tail"),("star","moon"),("book","read"),("pen","ink"),("sail","ruin"),("wolf","gown"),("side","walk")]
+    wordTuple = random.choice(words)
+    # print (wordTuple)
+    return wordTuple[0],wordTuple[1]
+
+def intermediate():
+    words = [("stone","money"),("ladder","better"),("cross","river"),("wheat","bread"),("apple","mango"),("blue","pink"),("work","team")]
+    wordTuple = random.choice(words)
+    # print (wordTuple)
+    return wordTuple[0],wordTuple[1]
+
+def advanced():
+    print("advanced")
+ 
+def ownWords(wordsList):
+    startWord = input("Enter start word: ")
+    while True:
+        if ValidWord(startWord,wordsList) != True:
+            print("Word does not exist in Dictionary")
+            startWord = input("Enter a valid start word: ")
+        else:
+            break
+
+    endWord = input("Enter end word: ")
+    while True:
+        if startWord == endWord:
+            print("Start and End word cannot be same.")
+            endWord = input("Enter a valid end word: ")
+        elif len(startWord) != len(endWord):
+            print("Start and End word must be of same length.")
+            endWord = input("Enter a valid end word: ")
+        elif ValidWord(endWord,wordsList) == False:
+            print("Word does not exist in Dictionary")
+            endWord = input("Enter a valid end word: ")
+        else:
+            break
+
+    return startWord,endWord
+
 def playGame(startWord, endWord, graph):
-    if startWord not in graph:
-        print(f"Error: Start word '{startWord}' not found in graph!")
-        return False
+    # if startWord not in graph:
+    #     print(f"Error: Start word '{startWord}' not found in graph!")
+    #     return False
     
     currentNode = graph[startWord]
     moves = 0
@@ -280,7 +343,7 @@ def playGame(startWord, endWord, graph):
         # Add transformations if no actions exist
         if not currentNode.actions:
             addAllTransformations(currentNode.word, endWord, graph.keys(), graph)
-            currentNode = graph[currentNode.word]  # Update node after adding actions
+            currentNode = graph[currentNode.word]
 
         nextWord = input("Enter the next word or type '1' to get a hint: ").strip()
         
@@ -292,8 +355,6 @@ def playGame(startWord, endWord, graph):
                 break
             else:
                 nextWord = input("Invalid Word, Enter another word or type '1' to get a hint: ").strip()
-                
-        
 
         while nextWord.lower() == '1':
             print("Choose an algorithm to get hint")
@@ -331,22 +392,37 @@ def playGame(startWord, endWord, graph):
     print("Congratulations, You won! 🎉 Score: ", moves)
     print("Path: ", path)
     return True
-        
-def main():
-    instructions()
+
+def startGame():
     file = open("words_alpha.txt", "r" )
     wordsList = file.read().split("\n")
     file.close()
-    
     depthLimit = 5
+    startWord = ""
+    endWord = ""
+    
+    instructions()
+    
+    type = gameType()
+    if type == "1":
+        startWord,endWord = ownWords(wordsList)
+    elif type == "2":
+        mode = chooseMode()
+        if mode == "1":
+            startWord,endWord = beginner()
+        elif mode == "2":
+            startWord,endWord = intermediate()
+        elif mode == "3":
+            startWord,endWord = advanced()
     
     while True:
-        startWord,endWord = userInput(wordsList)
-        
         dictionary = [word for word in wordsList if len(word) == len(startWord)]
 
+        print("Preparing Game for you...")
         graph = buildGraph(startWord,endWord,dictionary,depthLimit)
     
+        #Depth and path existence only to check if user enter words
+        # if gameType == "1":
         if graph is None:
             print("Depth limit reached and still end word not found.")
             continue
@@ -357,8 +433,9 @@ def main():
         
         break
     
-    
+    print("Game Ready! Let's Start")
+    print("The start word is: ", startWord)
+    print("and the goal is to reach: ", endWord)
     playGame(startWord,endWord,graph)
-    # GBFS(startWord,endWord,graph)
   
-main()
+startGame()
