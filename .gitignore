@@ -1,0 +1,43 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Backend (Python)
+backend/__pycache__/
+backend/venv/
+backend/*.pyc
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.venv/
+backend/.env
+backend/.DS_Store
+backend/.coverage
+backend/.vscode/
+
+# Backend dependencies
+backend/.tox/
+backend/.coverage
+backend/htmlcov/
+backend/instance/
+backend/.pylintrc
+backend/.flake8
+
+# Docker
+backend/Dockerfile
+
+# Frontend (Node.js, Vite, TailwindCSS)
+frontend/node_modules/
+frontend/.turbo/
+frontend/.eslintcache
+frontend/.parcel-cache/
+frontend/.vscode/
+frontend/dist/
+frontend/.DS_Store
+frontend/yarn-error.log
+frontend/npm-debug.log
+frontend/.env
+
+# Miscellaneous
+start-dev.sh
