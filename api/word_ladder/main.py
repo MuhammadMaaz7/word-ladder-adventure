@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from word_ladder.models import GameStartRequest, MoveRequest, HintRequest, GameResponse, MoveResponse, HintResponse
 from word_ladder.graph import buildGraph, pathExists, addAllTransformations, precompute_transformations
 from word_ladder.algorithms import UCS, GBFS, Astar, hintSequence
@@ -60,6 +61,9 @@ def get_cached_graph(startWord: str, endWord: str, word_length: int) -> dict:
     logger.info(f"Building graph for {startWord}->{endWord}")
     return buildGraph(startWord, endWord, filtered_dict, 5)
 
+app.get("/")
+async def health_check():
+    return JSONResponse(content={"message": "The Word Ladder API is running!"})
 
 
 @app.post("/api/start-game", response_model=GameResponse)
