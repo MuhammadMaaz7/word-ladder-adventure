@@ -1,4 +1,4 @@
 from mangum import Mangum
-from word_ladder.main import app  # assuming your app = FastAPI() is in word_ladder/main.py
+from word_ladder.main import app  # correct relative import
 
 handler = Mangum(app)
