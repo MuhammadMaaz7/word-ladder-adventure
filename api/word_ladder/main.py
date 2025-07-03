@@ -26,13 +26,19 @@ def get_cached_transformations(word_length: int):
 app = FastAPI()
 
 # Configure CORS
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://word-ladder-adventure-frontend.vercel.app/"],  # Explicitly allow your frontend
+    allow_origins=[
+        "http://localhost:5173",
+        "https://word-ladder-adventure-frontend.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Load word dictionary
 with open("words_alpha.txt", "r") as file:
