@@ -19,11 +19,14 @@ class MoveRequest(BaseModel):
     currentWord: str
     nextWord: str
     endWord: str
+    session_id: str  # Add this field
+
 
 class HintRequest(BaseModel):
     currentWord: str
     endWord: str
     algorithm: str
+    session_id: str  # Add this field
 
 class GameResponse(BaseModel):
     startWord: str
@@ -32,6 +35,8 @@ class GameResponse(BaseModel):
     validMoves: List[str]
     bannedWords: List[str]
     optimalMoves: int
+    sessionId: str  # Make sure this matches exactly what you're returning
+    optimalPath: List[str] 
 
 class MoveResponse(BaseModel):
     validMoves: List[str]
@@ -39,3 +44,13 @@ class MoveResponse(BaseModel):
 
 class HintResponse(BaseModel):
     hint: str
+    remainingSteps: int
+    
+class GameSession(BaseModel):
+    session_id: str
+    start_word: str
+    end_word: str
+    current_word: str
+    moves_used: int = 0
+    hints_used: int = 0
+    banned_words: List[str] = []

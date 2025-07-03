@@ -17,6 +17,6 @@ def calculateScore(movesTaken, optimalMoves, hintsUsed):
     penaltyPerExtraMove = 10
     penaltyPerHint = 5
     extraMoves = max(0, movesTaken - optimalMoves)
-    score = max(0, maxScore - (extraMoves * penaltyPerExtraMove) - (hintsUsed * penaltyPerHint))
-    
-    return score
+    movePenalty = extraMoves * penaltyPerExtraMove
+    hintPenalty = hintsUsed * penaltyPerHint
+    return max(0, maxScore - movePenalty - hintPenalty)

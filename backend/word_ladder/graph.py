@@ -4,34 +4,52 @@ from .utils import compare, getHeuristic
 from collections import defaultdict
 
 def buildGraph(startWord, endWord, wordsList, depthLimit):
+    # First check if both words exist in the dictionary
+    if startWord not in wordsList or endWord not in wordsList:
+        return None
+        
+    # Precompute transformations more efficiently
     transformations = precompute_transformations(wordsList)
     heuristicCost = getHeuristic(startWord, endWord)
     graph = {startWord: Node(startWord, None, [], heuristicCost, 0)}
-    queue = deque([(startWord, 0)]) 
-    explored = []
-
+    queue = deque([(startWord, 0, heuristicCost)])  # Add heuristic to queue
+    explored = set()  # Use set for O(1) lookups
+    found = False
+    
     while queue:
-        currentWord, currentDepth = queue.popleft()
+        currentWord, currentDepth, _ = queue.popleft()
         
         if currentDepth > depthLimit:
-            return None
-        
-        if currentWord not in explored:
-            if currentWord not in graph:
-                graph[currentWord] = Node(currentWord, None)
-                
-            addAllTransformations(currentWord, endWord, wordsList, graph, transformations)
-        
-            for action, cost in graph[currentWord].actions:
-                if action not in explored:
-                    queue.append((action, currentDepth + 1))
-                
-            explored.append(currentWord)
+            continue  # Skip but continue processing other nodes
             
-        if endWord in explored:
-            return graph
+        if currentWord in explored:
+            continue
             
-    return graph
+        explored.add(currentWord)
+        
+        # Lazy initialization of node if not exists
+        if currentWord not in graph:
+            graph[currentWord] = Node(
+                currentWord, 
+                None, 
+                [], 
+                getHeuristic(currentWord, endWord), 
+                0
+            )
+            
+        addAllTransformations(currentWord, endWord, wordsList, graph, transformations)
+        
+        for action, cost in graph[currentWord].actions:
+            if action == endWord:
+                found = True  # Mark that we found the end word
+            if action not in explored:
+                queue.append((action, currentDepth + 1, getHeuristic(action, endWord)))
+                
+        if found:
+            break  # Early exit if goal found
+            
+    # Only return the graph if we found the end word
+    return graph if found else None
 
 def pathExists(startWord, endWord, graph):
     explored = set()

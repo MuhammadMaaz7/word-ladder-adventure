@@ -2,13 +2,33 @@ import math
 from .models import Node
 from queue import PriorityQueue
 
+# def actionSequence(graph, goalState, initialState):
+#     solution = [goalState]
+#     currentParent = graph[goalState].parent
+#     while currentParent is not initialState:
+#         solution.append(currentParent)
+#         currentParent = graph[currentParent].parent
+#     solution.reverse()
+#     return solution
+
 def actionSequence(graph, goalState, initialState):
     solution = [goalState]
     currentParent = graph[goalState].parent
-    while currentParent is not initialState:
+    while currentParent is not None and currentParent != initialState:
+        solution.append(currentParent)
+        currentParent = graph[currentParent].parent
+    solution.append(initialState)  # Force include initial state
+    solution.reverse()
+    return solution
+
+def hintSequence(graph, goalState, initialState):
+    solution = [goalState]
+    currentParent = graph[goalState].parent
+    while currentParent is not None and currentParent != initialState:
         solution.append(currentParent)
         currentParent = graph[currentParent].parent
     solution.reverse()
+    # return solution[1:] if len(solution) > 1 else []  # Exclude initial state
     return solution
 
 def findMin(frontier):
@@ -21,39 +41,46 @@ def findMin(frontier):
     return node
 
 def UCS(startWord, endWord, graph):
-    if startWord in graph and endWord in graph:
-        initialState = startWord
-        goalState = endWord
-
-        frontier = {}
-        explored = []
-
-        frontier[initialState] = (None, 0)
-
-        while frontier:
-            currentNode = findMin(frontier)
-            del frontier[currentNode]
-
-            if graph[currentNode].word == goalState:
-                return actionSequence(graph, goalState, initialState)
-
-            explored.append(currentNode)
-            for action in graph[currentNode].actions:
-                currentCost = action[1] + graph[currentNode].path_cost
-
-                if action[0] not in frontier and action[0] not in explored:
-                    graph[action[0]].parent = currentNode
-                    graph[action[0]].path_cost = currentCost
-                    frontier[action[0]] = (graph[action[0]].parent, graph[action[0]].path_cost)
-                elif action[0] in frontier:
-                    if frontier[action[0]][1] < currentCost:
-                        graph[action[0]].parent = frontier[action[0]][0]
-                        graph[action[0]].path_cost = frontier[action[0]][1]
-                    else:
-                        frontier[action[0]] = (currentNode, currentCost)
-                        graph[action[0]].parent = currentNode
-                        graph[action[0]].path_cost = currentCost
-
+    if startWord not in graph or endWord not in graph:
+        return None
+        
+    frontier = PriorityQueue()
+    explored = set()
+    graph[startWord].path_cost = 0
+    frontier.put((0, startWord))
+    
+    while not frontier.empty():
+        currentCost, currentNode = frontier.get()
+        
+        if currentNode == endWord:
+            return actionSequence(graph, endWord, startWord)
+            
+        if currentNode in explored:
+            continue
+            
+        explored.add(currentNode)
+        
+        for action, cost in graph[currentNode].actions:
+            new_cost = currentCost + cost
+            if action not in explored:
+                if action not in [item[1] for item in frontier.queue]:
+                    graph[action].parent = currentNode
+                    graph[action].path_cost = new_cost
+                    frontier.put((new_cost, action))
+                elif new_cost < graph[action].path_cost:
+                    # Update priority if better path found
+                    graph[action].parent = currentNode
+                    graph[action].path_cost = new_cost
+                    # Need to update priority in queue
+                    temp_queue = []
+                    while not frontier.empty():
+                        cost, word = frontier.get()
+                        if word == action:
+                            cost = new_cost
+                        temp_queue.append((cost, word))
+                    for item in temp_queue:
+                        frontier.put(item)
+                        
 def Astar(startWord, endWord, graph):
     if startWord in graph and endWord in graph:
         initialState = startWord
