@@ -12,6 +12,8 @@ import WordPath from "./components/WordPath"
 import ScoreBreakdown from "./components/ScoreBreakdown";
 import "./App.css"
 
+const API_BASE_URL = "https://word-ladder-adventure-production.up.railway.app";
+
 export default function App() {
   const [gameState, setGameState] = useState({
     startWord: "",
@@ -73,7 +75,7 @@ export default function App() {
     }
 
     try {
-      const endpoint = "http://localhost:8000/api/start-game";
+      const endpoint = `${API_BASE_URL}/api/start-game`;
       const body = {
         gameMode,
         gameType,
@@ -135,7 +137,7 @@ export default function App() {
     setIsMoveLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/make-move", {
+      const response = await fetch(`${API_BASE_URL}/api/make-move`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -211,7 +213,7 @@ export default function App() {
     setLoadingHint(algorithm);
 
     try {
-      const response = await fetch("http://localhost:8000/api/hint", {
+      const response = await fetch(`${API_BASE_URL}/api/hint`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
