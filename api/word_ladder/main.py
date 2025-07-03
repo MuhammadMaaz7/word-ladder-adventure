@@ -61,9 +61,13 @@ def get_cached_graph(startWord: str, endWord: str, word_length: int) -> dict:
     logger.info(f"Building graph for {startWord}->{endWord}")
     return buildGraph(startWord, endWord, filtered_dict, 5)
 
-app.get("/")
-async def health_check():
-    return JSONResponse(content={"message": "The Word Ladder API is running!"})
+# app.get("/")
+# async def health_check():
+#     return JSONResponse(content={"message": "The Word Ladder API is running!"})
+
+@app.get("/")
+def home():
+    return {"message": "Word Ladder API is up"}
 
 
 @app.post("/api/start-game", response_model=GameResponse)
