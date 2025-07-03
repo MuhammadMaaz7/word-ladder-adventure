@@ -26,14 +26,9 @@ def get_cached_transformations(word_length: int):
 app = FastAPI()
 
 # Configure CORS
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5173,https://word-ladder-adventure-frontend.vercel.app"
-).split(",")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["http://localhost:5173", "https://word-ladder-adventure-frontend.vercel.app/"],  # Explicitly allow your frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
