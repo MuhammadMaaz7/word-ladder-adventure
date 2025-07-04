@@ -55,8 +55,6 @@ BEGINNER_WORDS = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "
 INTERMEDIATE_WORDS = [("stone","money"), ("ladder","better"), ("cross","river"), ("wheat","bread"), 
                       ("apple","mango"), ("blue","pink"), ("work","team"), ("drink","eight")]
 
-# INTERMEDIATE_WORDS = [("blue","pink")]
-
 ADVANCED_WORDS = BEGINNER_WORDS + INTERMEDIATE_WORDS
 
 # Cache size can be adjusted based on memory constraints
@@ -79,6 +77,7 @@ def home():
 @app.post("/api/start-game", response_model=GameResponse)
 async def start_game(request: GameStartRequest):
     # Validate game type
+    
     if request.gameType not in ["challenge", "custom"]:
         raise HTTPException(status_code=400, detail="Invalid game type")
 
