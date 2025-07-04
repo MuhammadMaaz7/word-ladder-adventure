@@ -27,6 +27,7 @@ export default function App() {
     score: 0,
     optimalMoves: 0,
     sessionId: "", // Add this line
+    bannedWords: [],
   })
 
   const [gameMode, setGameMode] = useState("beginner")
@@ -99,6 +100,7 @@ export default function App() {
       }
 
       const data = await response.json();
+      // console.log("Game start response:", data);
 
       setGameState({
         ...gameState,
@@ -113,7 +115,9 @@ export default function App() {
         score: 0,
         optimalMoves: data.optimalMoves,
         sessionId: data.sessionId,
+        bannedWords: data.bannedWords || [],
       });
+      // console.log("Current banned words:", data.bannedWords);  // Add this line
       setOptimalPath(data.optimalPath || []);
       setValidWords(data.validMoves);
       setShowInstructions(false);
@@ -152,6 +156,11 @@ export default function App() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        if (errorData.detail && errorData.detail.includes("banned")) {
+          throw new Error(`"${word}" is a banned word and cannot be used`);
+        }
+
         throw new Error(errorData.detail || "Invalid move. Please try a different word.");
       }
 
@@ -197,7 +206,7 @@ export default function App() {
       setValidWords(data.validMoves || []);
       setNextWordInput("");
       setHintsUsedThisTurn([]);
-      
+
     } catch (error) {
       console.error("Move error:", error);
       setError(error.message);
@@ -273,7 +282,7 @@ export default function App() {
     setNextWordInput("");
     setShowInstructions(true);
     setMessage(null);
-    setHintsUsedThisTurn([]); 
+    setHintsUsedThisTurn([]);
   };
 
   // Handle word input submission
@@ -298,6 +307,12 @@ export default function App() {
 
     if (submittedWord.length !== gameState.currentWord.length) {
       setError(`Word must be exactly ${gameState.currentWord.length} letters long`);
+      return;
+    }
+
+    // Add banned words check
+    if (gameState.bannedWords.includes(submittedWord)) {
+      setError(`"${submittedWord}" is a banned word and cannot be used`);
       return;
     }
 
@@ -470,6 +485,30 @@ export default function App() {
                   <WordPath path={gameState.path} />
                 </CardContent>
               </Card>
+
+              {/* Add this in the right column where other game info is displayed */}
+              {gameState.gameStatus === "playing" && gameMode === "advanced" && gameState.bannedWords.length > 0 && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>🚫 Banned Words</CardTitle>
+                    <CardDescription>
+                      These words cannot be used in your solution
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {gameState.bannedWords.map((word, index) => (
+                        <Badge key={index} variant="destructive" className="font-mono">
+                          {word}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-sm text-gray-400">
+                      Using a banned word will result in an invalid move.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
               {gameState.gameStatus === "idle" && (
                 <Card>
