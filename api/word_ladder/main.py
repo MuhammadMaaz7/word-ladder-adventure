@@ -49,11 +49,11 @@ game_graphs = {}
 active_sessions = {}
 
 # Word pair collections for different difficulty levels
-BEGINNER_WORDS = [("cat", "dog"), ("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),
-                 ("line","cake"), ("head","tail"), ("star","moon"), ("book","read"), ("pen","ink")]
+BEGINNER_WORDS = [("cat", "dog"),("page","bath"),("camp","said"),("keen","last"),("bond","kept"),("lead", "gold"), ("ruby", "code"), ("warm", "cold"), ("cap", "mop"),
+                 ("line","cake"), ("head","tail"), ("star","moon"), ("book","read"), ("pen","ink"), ("pig", "sty"), ("hat", "lid")]
 
-INTERMEDIATE_WORDS = [("stone","money"), ("ladder","better"), ("cross","river"), ("wheat","bread"), 
-                      ("apple","mango"), ("blue","pink"), ("work","team"), ("drink","eight")]
+INTERMEDIATE_WORDS = [("stone","money"),("dual","item"), ("ladder","better"), ("cross","river"), ("wheat","bread"), ("battle", "kettle"),
+                      ("apple","mango"), ("blue","pink"), ("work","team"), ("drink","eight"),("idea","army"),("tech","left")]
 
 ADVANCED_WORDS = BEGINNER_WORDS + INTERMEDIATE_WORDS
 
