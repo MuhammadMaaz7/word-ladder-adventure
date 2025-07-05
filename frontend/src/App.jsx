@@ -46,10 +46,11 @@ export default function App() {
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null); // Add this with other state declarations
   const [isMoveLoading, setIsMoveLoading] = useState(false);
-  const [loadingHint, setLoadingHint] = useState(null); // 'ucs', 'gbfs', 'astar', or null
+  // const [loadingHint, setLoadingHint] = useState(null); // 'ucs', 'gbfs', 'astar', or null
+  // const [hintsUsedThisTurn, setHintsUsedThisTurn] = useState([]);
+  const [isHintLoading, setIsHintLoading] = useState(false);
   const [optimalPath, setOptimalPath] = useState([]);
   const [scoreBreakdown, setScoreBreakdown] = useState(null);
-  const [hintsUsedThisTurn, setHintsUsedThisTurn] = useState([]);
 
   // Calculate percentage similarity between two words (0-100)
   const calculateWordSimilarity = (current, target) => {
@@ -161,7 +162,7 @@ export default function App() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        
+
         if (errorData.detail && errorData.detail.includes("banned")) {
           throw new Error(`"${word}" is a banned word and cannot be used`);
         }
@@ -210,7 +211,7 @@ export default function App() {
 
       setValidWords(data.validMoves || []);
       setNextWordInput("");
-      setHintsUsedThisTurn([]);
+      // setHintsUsedThisTurn([]);
 
     } catch (error) {
       console.error("Move error:", error);
@@ -221,10 +222,59 @@ export default function App() {
   };
 
   // Get hint
-  const getHint = async (algorithm) => {
+  // const getHint = async (algorithm) => {
+  //   if (gameState.gameStatus !== "playing") return;
+
+  //   setLoadingHint(algorithm);
+
+  //   try {
+  //     const response = await fetch(`${API_BASE_URL}/api/hint`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         currentWord: gameState.currentWord,
+  //         endWord: gameState.endWord,
+  //         algorithm,
+  //         session_id: gameState.sessionId, // Add this line
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.detail || "Failed to get hint");
+  //     }
+
+  //     const data = await response.json();
+
+  //     setGameState({
+  //       ...gameState,
+  //       hintsUsed: gameState.hintsUsed + 1,
+  //     });
+
+  //     setHintsUsedThisTurn([...hintsUsedThisTurn, algorithm]);
+
+  //     setMessage({
+  //       type: "info",
+  //       text: `Hint (${algorithm.toUpperCase()}): Try the word "${data.hint}"`,
+  //     });
+  //   } catch (error) {
+  //     setMessage({
+  //       type: "error",
+  //       text: error.message || "Failed to get a hint. Please try again.",
+  //     });
+  //   } finally {
+  //     setLoadingHint(null); // Reset loading state
+  //   }
+  // };
+
+  // Replace the entire getHint function with:
+  const getHint = async () => {
     if (gameState.gameStatus !== "playing") return;
 
-    setLoadingHint(algorithm);
+    setIsHintLoading(true);
+    setMessage(null);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/hint`, {
@@ -235,8 +285,8 @@ export default function App() {
         body: JSON.stringify({
           currentWord: gameState.currentWord,
           endWord: gameState.endWord,
-          algorithm,
-          session_id: gameState.sessionId, // Add this line
+          algorithm: "astar",
+          session_id: gameState.sessionId,
         }),
       });
 
@@ -252,11 +302,9 @@ export default function App() {
         hintsUsed: gameState.hintsUsed + 1,
       });
 
-      setHintsUsedThisTurn([...hintsUsedThisTurn, algorithm]);
-
       setMessage({
         type: "info",
-        text: `Hint (${algorithm.toUpperCase()}): Try the word "${data.hint}"`,
+        text: `Hint: Try the word "${data.hint}"`,
       });
     } catch (error) {
       setMessage({
@@ -264,7 +312,7 @@ export default function App() {
         text: error.message || "Failed to get a hint. Please try again.",
       });
     } finally {
-      setLoadingHint(null); // Reset loading state
+      setIsHintLoading(false);
     }
   };
 
@@ -287,7 +335,7 @@ export default function App() {
     setNextWordInput("");
     setShowInstructions(true);
     setMessage(null);
-    setHintsUsedThisTurn([]);
+    // setHintsUsedThisTurn([]);
   };
 
   // Handle word input submission
@@ -324,301 +372,296 @@ export default function App() {
     makeMove(submittedWord);
   };
 
-return (
-  <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-2 sm:p-4 lg:p-6">
-    <div className="max-w-4xl mx-auto">
-      <header className="text-center mb-4 sm:mb-6 lg:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text animate-gradient">
-          Word Ladder Adventure
-        </h1>
-        <p className="text-xs sm:text-sm lg:text-base text-gray-300">
-          Transform one word into another, one letter at a time!
-        </p>
-      </header>
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-2 sm:p-4 lg:p-6">
+      <div className="max-w-4xl mx-auto">
+        <header className="text-center mb-4 sm:mb-6 lg:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text animate-gradient">
+            Word Ladder Adventure
+          </h1>
+          <p className="text-xs sm:text-sm lg:text-base text-gray-300">
+            Transform one word into another, one letter at a time!
+          </p>
+        </header>
 
-      <div className="space-y-2 sm:space-y-3 lg:space-y-4 mb-2 sm:mb-3 lg:mb-4">
-        {error && (
-          <div className="p-2 sm:p-3 lg:p-4 rounded-lg bg-red-900/50 border border-red-500 text-xs sm:text-sm lg:text-base">
-            {error}
-          </div>
-        )}
-        {message && (
-          <div
-            className={`p-2 sm:p-3 lg:p-4 rounded-lg border transition-all duration-300 text-xs sm:text-sm lg:text-base ${
-              message.type === "error"
-                ? "bg-red-900/50 border-red-500"
-                : message.type === "success"
-                ? "bg-green-900/50 border-green-500"
-                : "bg-blue-900/50 border-blue-500"
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
-      </div>
+        <div className="space-y-2 sm:space-y-3 lg:space-y-4 mb-2 sm:mb-3 lg:mb-4">
+          {error && (
+            <div className="p-2 sm:p-3 lg:p-4 rounded-lg bg-red-900/50 border border-red-500 text-xs sm:text-sm lg:text-base">
+              {error}
+            </div>
+          )}
+          {message && (
+            <div
+              className={`p-2 sm:p-3 lg:p-4 rounded-lg border transition-all duration-300 text-xs sm:text-sm lg:text-base ${message.type === "error"
+                  ? "bg-red-900/50 border-red-500"
+                  : message.type === "success"
+                    ? "bg-green-900/50 border-green-500"
+                    : "bg-blue-900/50 border-blue-500"
+                }`}
+            >
+              {message.text}
+            </div>
+          )}
+        </div>
 
-      {showInstructions ? (
-        <Instructions onStartClick={() => setShowInstructions(false)} />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-1 sm:gap-2">
-                  <CardTitle className="text-base sm:text-lg lg:text-xl">Game Board</CardTitle>
-                  <div className="flex space-x-1 sm:space-x-2">
-                    <Badge variant="outline" className="text-xs sm:text-sm">
-                      Moves: {gameState.movesTaken}/{gameState.movesLimit}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs sm:text-sm">
-                      Hints: {gameState.hintsUsed}
-                    </Badge>
-                  </div>
-                </div>
-                <CardDescription className="text-xs sm:text-sm lg:text-base">
-                  Transform <span className="font-bold text-green-400">{gameState.startWord}</span> into{" "}
-                  <span className="font-bold text-red-400">{gameState.endWord}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <GameBoard
-                  startWord={gameState.startWord}
-                  endWord={gameState.endWord}
-                  currentWord={gameState.currentWord}
-                  gameStatus={gameState.gameStatus}
-                />
-
-                <div className="mt-3 sm:mt-4 lg:mt-6">
-                  <div className="mb-1 sm:mb-2 flex justify-between text-xs sm:text-sm lg:text-base">
-                    <span>Progress</span>
-                    <span>
-                      {gameState.gameStatus === "won"
-                        ? "100%"
-                        : `${calculateWordSimilarity(gameState.currentWord, gameState.endWord)}%`
-                      }
-                    </span>
-                  </div>
-                  <Progress
-                    value={
-                      gameState.gameStatus === "won"
-                        ? 100
-                        : calculateWordSimilarity(gameState.currentWord, gameState.endWord)
-                    }
-                  />
-                </div>
-
-                {gameState.gameStatus === "playing" && (
-                  <>
-                    <form onSubmit={handleWordSubmit} className="mt-3 sm:mt-4 lg:mt-6">
-                      <div className="flex flex-col xs:flex-row gap-2">
-                        <Input
-                          value={nextWordInput}
-                          onChange={(e) => setNextWordInput(e.target.value)}
-                          placeholder="Enter next word..."
-                          className="flex-1 text-xs sm:text-sm lg:text-base"
-                        />
-                        <Button 
-                          type="submit" 
-                          disabled={isMoveLoading}
-                          className="w-full xs:w-auto text-xs sm:text-sm"
-                        >
-                          {isMoveLoading ? "Processing..." : "Submit"}
-                        </Button>
-                      </div>
-                    </form>
-
-                    <div className="mt-2 sm:mt-3 lg:mt-4">
-                      <p className="mb-1 sm:mb-2 text-xs sm:text-sm text-gray-400">Need a hint?</p>
-                      <div className="flex flex-wrap gap-1 sm:gap-2">
-                        {["ucs", "gbfs", "astar"].map((algorithm) => (
-                          <Button
-                            key={algorithm}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => getHint(algorithm)}
-                            disabled={loadingHint !== null || hintsUsedThisTurn.includes(algorithm)}
-                            className="text-xs sm:text-sm flex-1 min-w-[100px]"
-                          >
-                            {loadingHint === algorithm ? "Loading..." : `${algorithm.toUpperCase()} Hint`}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {(gameState.gameStatus === "won" || gameState.gameStatus === "lost") && (
-                  <div className="mt-3 sm:mt-4 lg:mt-6">
-                    <div className={`p-3 sm:p-4 rounded-lg ${
-                      gameState.gameStatus === "won"
-                        ? "bg-green-900/30 border border-green-500"
-                        : "bg-red-900/30 border border-red-500"
-                    }`}>
-                      <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">
-                        {gameState.gameStatus === "won" ? "Congratulations!" : "Game Over"}
-                      </h3>
-                      <p className="text-sm sm:text-base">
-                        {gameState.gameStatus === "won"
-                          ? `You won with a score of ${gameState.score}!`
-                          : "You've reached the move limit. Try again!"}
-                      </p>
-
-                      {gameState.gameStatus === "won" && scoreBreakdown && (
-                        <>
-                          <ScoreBreakdown scoreData={scoreBreakdown} />
-                          <div className="mt-2 sm:mt-3 lg:mt-4">
-                            <h4 className="font-medium mb-1 text-sm sm:text-base">Optimal Solution:</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {optimalPath.map((word, index) => (
-                                <span key={index} className="px-1 sm:px-2 py-0.5 sm:py-1 bg-gray-700 rounded text-xs sm:text-sm">
-                                  {word}
-                                  {index < optimalPath.length - 1 && (
-                                    <span className="mx-1 text-gray-400">→</span>
-                                  )}
-                                </span>
-                              ))}
-                            </div>
-                            <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-300">
-                              Optimal moves: {optimalPath.length - 1}, Your moves: {gameState.movesTaken}
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <Button className="w-full mt-2 sm:mt-3 lg:mt-4" onClick={resetGame}>
-                      Play Again
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg lg:text-xl">Your Path</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <WordPath path={gameState.path} />
-              </CardContent>
-            </Card>
-
-            {gameState.gameStatus === "playing" && gameMode === "advanced" && gameState.bannedWords.length > 0 && (
+        {showInstructions ? (
+          <Instructions onStartClick={() => setShowInstructions(false)} />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+            <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base sm:text-lg lg:text-xl">Banned Words</CardTitle>
+                  <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-1 sm:gap-2">
+                    <CardTitle className="text-base sm:text-lg lg:text-xl">Game Board</CardTitle>
+                    <div className="flex space-x-1 sm:space-x-2">
+                      <Badge variant="outline" className="text-xs sm:text-sm">
+                        Moves: {gameState.movesTaken}/{gameState.movesLimit}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs sm:text-sm">
+                        Hints: {gameState.hintsUsed}
+                      </Badge>
+                    </div>
+                  </div>
                   <CardDescription className="text-xs sm:text-sm lg:text-base">
-                    These words cannot be used in your solution
+                    Transform <span className="font-bold text-green-400">{gameState.startWord}</span> into{" "}
+                    <span className="font-bold text-red-400">{gameState.endWord}</span>
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                    {gameState.bannedWords.map((word, index) => (
-                      <Badge 
-                        key={index} 
-                        variant="destructive" 
-                        className="font-mono text-xs sm:text-sm"
-                      >
-                        {word}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-400">
-                    Using a banned word will result in an invalid move.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                  <GameBoard
+                    startWord={gameState.startWord}
+                    endWord={gameState.endWord}
+                    currentWord={gameState.currentWord}
+                    gameStatus={gameState.gameStatus}
+                  />
 
-            {gameState.gameStatus === "idle" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg lg:text-xl">Game Setup</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 sm:space-y-3 lg:space-y-4">
-                    <div>
-                      <h3 className="mb-1 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Game Type</h3>
-                      <div className="flex space-x-1 sm:space-x-2">
-                        <Button
-                          variant={gameType === "challenge" ? "default" : "outline"}
-                          className="flex-1 text-xs sm:text-sm"
-                          onClick={() => setGameType("challenge")}
-                        >
-                          Challenge
-                        </Button>
-                        <Button
-                          variant={gameType === "custom" ? "default" : "outline"}
-                          className="flex-1 text-xs sm:text-sm"
-                          onClick={() => setGameType("custom")}
-                        >
-                          Custom
-                        </Button>
-                      </div>
+                  <div className="mt-3 sm:mt-4 lg:mt-6">
+                    <div className="mb-1 sm:mb-2 flex justify-between text-xs sm:text-sm lg:text-base">
+                      <span>Progress</span>
+                      <span>
+                        {gameState.gameStatus === "won"
+                          ? "100%"
+                          : `${calculateWordSimilarity(gameState.currentWord, gameState.endWord)}%`
+                        }
+                      </span>
                     </div>
+                    <Progress
+                      value={
+                        gameState.gameStatus === "won"
+                          ? 100
+                          : calculateWordSimilarity(gameState.currentWord, gameState.endWord)
+                      }
+                    />
+                  </div>
 
-                    {gameType === "challenge" ? (
-                      <div>
-                        <h3 className="mb-1 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Select Difficulty</h3>
-                        <div className="space-y-1 sm:space-y-2">
-                          {[
-                            { value: "beginner", label: "Beginner", moves: 5 },
-                            { value: "intermediate", label: "Intermediate", moves: 7 },
-                            { value: "advanced", label: "Advanced", moves: 10 },
-                          ].map(({ value, label, moves }) => (
-                            <Button
-                              key={value}
-                              variant={gameMode === value ? "default" : "outline"}
-                              className="w-full justify-between text-xs sm:text-sm"
-                              onClick={() => setGameMode(value)}
-                            >
-                              <span>{label}</span>
-                              <Badge variant="secondary" className="ml-1 sm:ml-2 text-xxs sm:text-xs">
-                                {moves} moves
-                              </Badge>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 sm:space-y-3 lg:space-y-4">
-                        <div>
-                          <label className="block text-xs sm:text-sm font-medium mb-1">Start Word</label>
+                  {gameState.gameStatus === "playing" && (
+                    <>
+                      <form onSubmit={handleWordSubmit} className="mt-3 sm:mt-4 lg:mt-6">
+                        <div className="flex flex-col xs:flex-row gap-2">
                           <Input
-                            value={customStartWord}
-                            onChange={(e) => setCustomStartWord(e.target.value)}
-                            placeholder="Enter start word"
-                            className="text-xs sm:text-sm lg:text-base"
+                            value={nextWordInput}
+                            onChange={(e) => setNextWordInput(e.target.value)}
+                            placeholder="Enter next word..."
+                            className="flex-1 text-xs sm:text-sm lg:text-base"
                           />
+                          <Button
+                            type="submit"
+                            disabled={isMoveLoading}
+                            className="w-full xs:w-auto text-xs sm:text-sm"
+                          >
+                            {isMoveLoading ? "Processing..." : "Submit"}
+                          </Button>
                         </div>
-                        <div>
-                          <label className="block text-xs sm:text-sm font-medium mb-1">End Word</label>
-                          <Input
-                            value={customEndWord}
-                            onChange={(e) => setCustomEndWord(e.target.value)}
-                            placeholder="Enter end word"
-                            className="text-xs sm:text-sm lg:text-base"
-                          />
-                        </div>
+                      </form>
+
+                      {/* Hint Section - Updated Single Button */}
+                      <div className="mt-2 sm:mt-3 lg:mt-4">
+                        <p className="mb-1 sm:mb-2 text-xs sm:text-sm text-gray-400">Need a hint?</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={getHint}
+                          disabled={isHintLoading}
+                          className="w-full text-xs sm:text-sm"
+                        >
+                          {isHintLoading ? "Loading Hint..." : "Get Hint"}
+                        </Button>
                       </div>
+                    </>
+                )}
+
+              {(gameState.gameStatus === "won" || gameState.gameStatus === "lost") && (
+                <div className="mt-3 sm:mt-4 lg:mt-6">
+                  <div className={`p-3 sm:p-4 rounded-lg ${gameState.gameStatus === "won"
+                      ? "bg-green-900/30 border border-green-500"
+                      : "bg-red-900/30 border border-red-500"
+                    }`}>
+                    <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">
+                      {gameState.gameStatus === "won" ? "Congratulations!" : "Game Over"}
+                    </h3>
+                    <p className="text-sm sm:text-base">
+                      {gameState.gameStatus === "won"
+                        ? `You won with a score of ${gameState.score}!`
+                        : "You've reached the move limit. Try again!"}
+                    </p>
+
+                    {gameState.gameStatus === "won" && scoreBreakdown && (
+                      <>
+                        <ScoreBreakdown scoreData={scoreBreakdown} />
+                        <div className="mt-2 sm:mt-3 lg:mt-4">
+                          <h4 className="font-medium mb-1 text-sm sm:text-base">Optimal Solution:</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {optimalPath.map((word, index) => (
+                              <span key={index} className="px-1 sm:px-2 py-0.5 sm:py-1 bg-gray-700 rounded text-xs sm:text-sm">
+                                {word}
+                                {index < optimalPath.length - 1 && (
+                                  <span className="mx-1 text-gray-400">→</span>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-300">
+                            Optimal moves: {optimalPath.length - 1}, Your moves: {gameState.movesTaken}
+                          </p>
+                        </div>
+                      </>
                     )}
+                  </div>
+                  <Button className="w-full mt-2 sm:mt-3 lg:mt-4" onClick={resetGame}>
+                    Play Again
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          </div>
 
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg lg:text-xl">Your Path</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WordPath path={gameState.path} />
+          </CardContent>
+        </Card>
+
+        {gameState.gameStatus === "playing" && gameMode === "advanced" && gameState.bannedWords.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg lg:text-xl">Banned Words</CardTitle>
+              <CardDescription className="text-xs sm:text-sm lg:text-base">
+                These words cannot be used in your solution
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-1 sm:gap-2">
+                {gameState.bannedWords.map((word, index) => (
+                  <Badge
+                    key={index}
+                    variant="destructive"
+                    className="font-mono text-xs sm:text-sm"
+                  >
+                    {word}
+                  </Badge>
+                ))}
+              </div>
+              <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-400">
+                Using a banned word will result in an invalid move.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {gameState.gameStatus === "idle" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg lg:text-xl">Game Setup</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+                <div>
+                  <h3 className="mb-1 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Game Type</h3>
+                  <div className="flex space-x-1 sm:space-x-2">
                     <Button
-                      className="w-full text-xs sm:text-sm lg:text-base"
-                      onClick={startGame}
-                      disabled={isLoading || (gameType === "custom" && (!customStartWord || !customEndWord))}
+                      variant={gameType === "challenge" ? "default" : "outline"}
+                      className="flex-1 text-xs sm:text-sm"
+                      onClick={() => setGameType("challenge")}
                     >
-                      {isLoading ? "Loading..." : "Start Game"}
+                      Challenge
+                    </Button>
+                    <Button
+                      variant={gameType === "custom" ? "default" : "outline"}
+                      className="flex-1 text-xs sm:text-sm"
+                      onClick={() => setGameType("custom")}
+                    >
+                      Custom
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      )}
+                </div>
+
+                {gameType === "challenge" ? (
+                  <div>
+                    <h3 className="mb-1 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Select Difficulty</h3>
+                    <div className="space-y-1 sm:space-y-2">
+                      {[
+                        { value: "beginner", label: "Beginner", moves: 5 },
+                        { value: "intermediate", label: "Intermediate", moves: 7 },
+                        { value: "advanced", label: "Advanced", moves: 10 },
+                      ].map(({ value, label, moves }) => (
+                        <Button
+                          key={value}
+                          variant={gameMode === value ? "default" : "outline"}
+                          className="w-full justify-between text-xs sm:text-sm"
+                          onClick={() => setGameMode(value)}
+                        >
+                          <span>{label}</span>
+                          <Badge variant="secondary" className="ml-1 sm:ml-2 text-xxs sm:text-xs">
+                            {moves} moves
+                          </Badge>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium mb-1">Start Word</label>
+                      <Input
+                        value={customStartWord}
+                        onChange={(e) => setCustomStartWord(e.target.value)}
+                        placeholder="Enter start word"
+                        className="text-xs sm:text-sm lg:text-base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium mb-1">End Word</label>
+                      <Input
+                        value={customEndWord}
+                        onChange={(e) => setCustomEndWord(e.target.value)}
+                        placeholder="Enter end word"
+                        className="text-xs sm:text-sm lg:text-base"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  className="w-full text-xs sm:text-sm lg:text-base"
+                  onClick={startGame}
+                  disabled={isLoading || (gameType === "custom" && (!customStartWord || !customEndWord))}
+                >
+                  {isLoading ? "Loading..." : "Start Game"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
-  </div>
+  )
+}
+    </div >
+  </div >
 )
 }

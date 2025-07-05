@@ -25,7 +25,7 @@ class MoveRequest(BaseModel):
 class HintRequest(BaseModel):
     currentWord: str
     endWord: str
-    algorithm: str
+    # algorithm: str
     session_id: str  # Add this field
 
 class GameResponse(BaseModel):

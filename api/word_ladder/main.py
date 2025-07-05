@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from word_ladder.models import GameStartRequest, MoveRequest, HintRequest, GameResponse, MoveResponse, HintResponse
 from word_ladder.graph import buildGraph, pathExists, addAllTransformations, precompute_transformations
 from word_ladder.algorithms import UCS, GBFS, Astar, hintSequence
@@ -41,8 +40,13 @@ app.add_middleware(
 
 
 # Load word dictionary
-with open("words_alpha.txt", "r") as file:
-    WORDS_LIST = set(file.read().splitlines())
+# with open("csw.txt", "r") as file:
+#     WORDS_LIST = set(file.read().splitlines())
+    
+# With this (forces lowercase):
+with open("csw.txt", "r") as file:
+    WORDS_LIST = {word.strip().lower() for word in file}
+
 
 # Game data store (in-memory for simplicity)
 game_graphs = {}
@@ -64,10 +68,6 @@ def get_cached_graph(startWord: str, endWord: str, word_length: int) -> dict:
     filtered_dict = [word for word in WORDS_LIST if len(word) == word_length]
     logger.info(f"Building graph for {startWord}->{endWord}")
     return buildGraph(startWord, endWord, filtered_dict, 5)
-
-# app.get("/")
-# async def health_check():
-#     return JSONResponse(content={"message": "The Word Ladder API is running!"})
 
 @app.get("/")
 def home():
@@ -303,16 +303,8 @@ async def get_hint(request: HintRequest):
     # Get hint path
     hint_path = None
     try:
-        if request.algorithm == "ucs":
-            path = UCS(request.currentWord, session["end_word"], graph)
-            hint_path = hintSequence(graph, session["end_word"], request.currentWord) if path else None
-        elif request.algorithm == "gbfs":
-            hint_path = GBFS(request.currentWord, session["end_word"], graph)
-        elif request.algorithm == "astar":
-            path = Astar(request.currentWord, session["end_word"], graph)
-            hint_path = hintSequence(graph, session["end_word"], request.currentWord) if path else None
-        else:
-            raise HTTPException(status_code=400, detail="Invalid algorithm")
+        path = Astar(request.currentWord, session["end_word"], graph)
+        hint_path = hintSequence(graph, session["end_word"], request.currentWord) if path else None
     except Exception as e:
         logger.error(f"Hint generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Hint generation failed")
@@ -324,7 +316,7 @@ async def get_hint(request: HintRequest):
         hint=hint_path[0] if hint_path else request.currentWord,  # Fallback to current word if no hint
         remainingSteps=len(hint_path)
     )
-        
+
 # Run the server
 if __name__ == "__main__":
     import uvicorn
